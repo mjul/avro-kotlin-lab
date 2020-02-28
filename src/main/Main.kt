@@ -4,8 +4,10 @@ import AvroKotlinLab.Schemas.Amount
 import org.apache.avro.Conversions.DecimalConversion
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
+import org.apache.avro.file.DataFileReader
 import org.apache.avro.file.DataFileWriter
 import org.apache.avro.generic.GenericData
+import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.io.DatumWriter
@@ -20,12 +22,23 @@ fun main(args: Array<String>) {
     println(schema.toString(true))
     writeGenericRecords(schema, "amounts-generic.avro")
     writeSpecificRecords(schema, "amounts-specific.avro")
+    readGenericRecords(schema, "amounts-generic.avro")
 }
 
+
+val MONEY_PRECISION = 10
+val MONEY_SCALE = 2
+val MONEY_SCHEMA = LogicalTypes.decimal(MONEY_PRECISION, MONEY_SCALE)
+
 fun toMoney(x: BigDecimal): ByteBuffer {
-    val bytes = DecimalConversion().toBytes(x, null, LogicalTypes.decimal(4, 2))
+    val bytes = DecimalConversion().toBytes(x, null, MONEY_SCHEMA)
     return bytes
 }
+
+fun fromMoney(x: ByteBuffer): BigDecimal {
+    return DecimalConversion().fromBytes(x, null, MONEY_SCHEMA)
+}
+
 
 fun writeSpecificRecords(schema: Schema, filename: String) {
     val integerAmount = Amount.newBuilder()
@@ -66,7 +79,19 @@ private fun writeGenericRecords(schema: Schema, filename: String) {
         it.create(schema, file)
         it.append(integerAmount)
         it.append(decimalAmount)
-        it.close()
+    }
+}
+
+
+private fun readGenericRecords(schema: Schema, filename: String) {
+    val file = File(filename)
+    println("Loading ${file.absolutePath}")
+    val datumReader = GenericDatumReader<GenericRecord>(schema)
+    DataFileReader(file, datumReader).use { fileReader ->
+        fileReader.forEach {
+            val buffer = it.get("value") as ByteBuffer
+            println("\tRecord with value: ${fromMoney(buffer)}")
+        }
     }
 }
 
@@ -82,8 +107,8 @@ private fun getSchema(): Schema {
                         "name": "value",
                         "type": "bytes",
                         "logicalType": "decimal",
-                        "precision": 4,
-                        "scale": 2
+                        "precision": ${MONEY_PRECISION},
+                        "scale": ${MONEY_SCALE}
                     }
                 ]
             }
