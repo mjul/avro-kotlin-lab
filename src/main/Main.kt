@@ -11,6 +11,7 @@ import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.io.DatumWriter
+import org.apache.avro.specific.SpecificDatumReader
 import org.apache.avro.specific.SpecificDatumWriter
 import java.io.File
 import java.math.BigDecimal
@@ -23,6 +24,7 @@ fun main(args: Array<String>) {
     writeGenericRecords(schema, "amounts-generic.avro")
     writeSpecificRecords(schema, "amounts-specific.avro")
     readGenericRecords(schema, "amounts-generic.avro")
+    readSpecificRecords("amounts-specific.avro")
 }
 
 
@@ -57,6 +59,19 @@ fun writeSpecificRecords(schema: Schema, filename: String) {
         it.append(decimalAmount)
     }
 }
+
+private fun readSpecificRecords(filename: String) {
+    val file = File(filename)
+    println("Loading ${file.absolutePath}")
+    val datumReader = SpecificDatumReader<Amount>()
+    DataFileReader(file, datumReader).use { fileReader ->
+        fileReader.forEach {
+            println("\tAmount with value: ${fromMoney(it.value)}")
+        }
+    }
+}
+
+
 
 
 private fun writeGenericRecords(schema: Schema, filename: String) {
@@ -94,6 +109,7 @@ private fun readGenericRecords(schema: Schema, filename: String) {
         }
     }
 }
+
 
 private fun getSchema(): Schema {
     val schemaJson =
