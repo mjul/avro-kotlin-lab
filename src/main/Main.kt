@@ -1,3 +1,5 @@
+package avrokotlinlab
+
 import AvroKotlinLab.Schemas.Amount
 import org.apache.avro.Conversions.DecimalConversion
 import org.apache.avro.LogicalTypes
@@ -26,13 +28,14 @@ fun toMoney(x: BigDecimal): ByteBuffer {
 }
 
 fun writeSpecificRecords(schema: Schema, filename: String) {
-    val integerAmount = AvroKotlinLab.Schemas.Amount.newBuilder()
+    val integerAmount = Amount.newBuilder()
         .setValue(toMoney(BigDecimal.valueOf(100, 2))) // 1.00
         .build()
-    val decimalAmount = AvroKotlinLab.Schemas.Amount.newBuilder()
+    val decimalAmount = Amount.newBuilder()
         .setValue(toMoney(BigDecimal.valueOf(128, 2))) // 1.28
         .build()
-    val userDatumWriter: DatumWriter<Amount> = SpecificDatumWriter<Amount>(Amount::class.java)
+    val userDatumWriter: DatumWriter<Amount> = SpecificDatumWriter<Amount>(
+        Amount::class.java)
     val file = File(filename)
     println("Saving ${file.absolutePath}")
     DataFileWriter<Amount>(userDatumWriter).use {
@@ -45,11 +48,15 @@ fun writeSpecificRecords(schema: Schema, filename: String) {
 
 private fun writeGenericRecords(schema: Schema, filename: String) {
     val integerAmount = GenericData.Record(schema)
-    integerAmount.put("value", toMoney(BigDecimal.valueOf(4200, 2)))
+    integerAmount.put("value",
+        toMoney(BigDecimal.valueOf(4200, 2))
+    )
     println("Int: ${integerAmount.toString()}")
 
     val decimalAmount = GenericData.Record(schema)
-    decimalAmount.put("value", toMoney(BigDecimal.valueOf(1234, 2)))
+    decimalAmount.put("value",
+        toMoney(BigDecimal.valueOf(1234, 2))
+    )
     println("Dec: ${decimalAmount.toString()}")
 
     val datumWriter: DatumWriter<GenericRecord> = GenericDatumWriter(schema)

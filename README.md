@@ -12,5 +12,5 @@ Extract the schema into an `.avsc`file from the source or from a data file like 
 
 Now, run the generator to generate Java classes for the Avro types in the schema:
 
-    java -jar .\lib\avro-tools-1.9.2.jar compile -bigDecimal .\amounts.avsc generated
+    java -jar .\lib\avro-tools-1.9.2.jar compile schema .\amounts.avsc src\generated
 
