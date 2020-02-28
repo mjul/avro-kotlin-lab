@@ -50,7 +50,8 @@ fun writeSpecificRecords(schema: Schema, filename: String) {
         .setValue(toMoney(BigDecimal.valueOf(128, 2))) // 1.28
         .build()
     val userDatumWriter: DatumWriter<Amount> = SpecificDatumWriter<Amount>(
-        Amount::class.java)
+        Amount::class.java
+    )
     val file = File(filename)
     println("Saving ${file.absolutePath}")
     DataFileWriter<Amount>(userDatumWriter).use {
@@ -72,17 +73,17 @@ private fun readSpecificRecords(filename: String) {
 }
 
 
-
-
 private fun writeGenericRecords(schema: Schema, filename: String) {
     val integerAmount = GenericData.Record(schema)
-    integerAmount.put("value",
+    integerAmount.put(
+        "value",
         toMoney(BigDecimal.valueOf(4200, 2))
     )
     println("Int: ${integerAmount.toString()}")
 
     val decimalAmount = GenericData.Record(schema)
-    decimalAmount.put("value",
+    decimalAmount.put(
+        "value",
         toMoney(BigDecimal.valueOf(1234, 2))
     )
     println("Dec: ${decimalAmount.toString()}")
